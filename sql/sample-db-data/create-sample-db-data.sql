@@ -1,6 +1,7 @@
 --очищаем все существующие таблицы
-TRUNCATE users,assignments,labor_reports, leave_periods, project_roles, tokens,user_allowed_project_roles,variable_values,roles,slots,busy_percentages, user_roles,projects, kk_profiles, bitbucket_projects, confluence_spaces,
-jira_projects, kk_experiences, kk_labels, testit_projects,kk_admin, kk_certificates,kk_education, kk_notes, kk_profile_qualities, kk_experiences_skills, logs, labor_reports_tasks_stages, slots_tasks, stages, tasks;
+truncate users,assignments,labor_reports, leave_periods, project_roles, tokens,user_allowed_project_roles,variable_values,roles,slots,busy_percentages, user_roles,projects, kk_profiles, bitbucket_projects, confluence_spaces,
+jira_projects, kk_experiences, kk_labels, testit_projects,kk_admin, kk_certificates, kk_workplaces, kk_education, kk_post_roles, kk_notes, kk_profile_qualities, kk_departments, kk_schedule, kk_schedule_time, kk_experiences_skills,
+kk_profiles, logs, labor_reports_tasks_stages, slots_tasks, stage_statuses, stages, task_links, task_statuses, tasks, affiliates, kk_contacts, kk_resumes, kk_search, kk_posts;
 
 --------------------- Исходные данные -----------------------------
 
@@ -20,6 +21,14 @@ CREATE TABLE user_data (
     start_work_date timestamptz,
     dismissal_date timestamptz,
     system_role varchar(255),
+    kk_post varchar(255),
+    kk_status varchar(255),
+    kk_marital_status varchar(255),
+    kk_edu_type varchar(255),
+    kk_edu_direction varchar(255),
+    kk_working_time_start int4,
+    kk_working_time_end int4,
+    kk_department varchar(255),
     project varchar(255),
     project_role varchar(255),
     is_project_manager bool,
@@ -28,37 +37,37 @@ CREATE TABLE user_data (
 
 ALTER SEQUENCE users_id_seq RESTART WITH 1; -- сброс id в 1
 --заполнение вспомогательной таблицы исходными данными пользователей
-INSERT INTO  user_data (username, user_password, user_name, second_name, third_name, phone, email, user_type, birth_date, start_work_date, dismissal_date, system_role, project, project_role, is_project_manager, busy_percentage)
+INSERT INTO  user_data (username,	user_password,	user_name,	second_name,	third_name,	phone,	email,	user_type,	birth_date,	start_work_date,	dismissal_date,	system_role,	kk_post,	kk_status,	kk_marital_status,	kk_edu_type,	kk_edu_direction,	kk_working_time_start,	kk_working_time_end,	kk_department,	project,	project_role,	is_project_manager,	busy_percentage)
     VALUES
-('user',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Виктория', 'Голубева', 'Владимировна', '+7 (000) 123 45 01',   'golubeva.v@user-02.ru',    'local',    '1990-11-22',   '2018-02-04',   null,   '', 'Разработка СЭД',   'Дизайнер', 'false',    25),
-('user',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Виктория', 'Голубева', 'Владимировна', '+7 (000) 123 45 01',   'golubeva.v@user-02.ru',    'local',    '1990-11-22',   '2018-02-04',   null,   '', 'Модернизация АИС', 'Дизайнер', 'false',    50),
-('user',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Виктория', 'Голубева', 'Владимировна', '+7 (000) 123 45 01',   'golubeva.v@user-02.ru',    'local',    '1990-11-22',   '2018-02-04',   null,   '', 'Офисные нужды',    'Дизайнер', 'false',    10),
-('user',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Виктория', 'Голубева', 'Владимировна', '+7 (000) 123 45 01',   'golubeva.v@user-02.ru',    'local',    '1990-11-22',   '2018-02-04',   null,   '', 'Разработка сайта', 'Дизайнер', 'false',    25),
-('admin',   '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Александр',    'Морозов',  'Степанович',   '+7 (000) 123 45 02',   'morozov.a@admin-03-08.ru', 'local',    '1980-02-12',   '2016-02-17',   null,   'админ',    'Модернизация АИС', 'Разработчик',  'false',    100),
-('admin',   '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Александр',    'Морозов',  'Степанович',   '+7 (000) 123 45 02',   'morozov.a@admin-03-08.ru', 'local',    '1980-02-12',   '2016-02-17',   null,   'админ',    'Обучение стажеров',    'Руководитель разработки',  'true', 100),
-('lead',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Елена',    'Чижова',   'Фёдоровна',    '+7 (000) 123 45 03',   'chizhova.e@lead-04-09.ru', 'local',    '1986-05-16',   '2016-12-15',   null,   'лид',  'Модернизация АИС', 'Руководитель тестирования',    'true', 100),
-('lead',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Елена',    'Чижова',   'Фёдоровна',    '+7 (000) 123 45 03',   'chizhova.e@lead-04-09.ru', 'local',    '1986-05-16',   '2016-12-15',   null,   'лид',  'Обучение стажеров',    'Тестировщик',  'false',    75),
-('assist',  '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Максим',   'Королёв',  'Сергеевич',    '+7 (000) 123 45 04',   'korolev.m@assist-03.ru',   'local',    '1996-09-25',   '2016-07-25',   null,   'технический ассистент',    'Разработка СЭД',   'Разработчик',  'false',    50),
-('assist',  '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Максим',   'Королёв',  'Сергеевич',    '+7 (000) 123 45 04',   'korolev.m@assist-03.ru',   'local',    '1996-09-25',   '2016-07-25',   null,   'технический ассистент',    'Модернизация АИС', 'Разработчик',  'false',    75),
-('assist',  '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Максим',   'Королёв',  'Сергеевич',    '+7 (000) 123 45 04',   'korolev.m@assist-03.ru',   'local',    '1996-09-25',   '2016-07-25',   null,   'технический ассистент',    'Разработка сайта', 'Разработчик',  'false',    100),
-('fedotova',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Амина',    'Федотова', 'Никитична',    '+7 (000) 123 45 05',   'fedotova.f@lead-01-06.ru', 'local',    '1995-06-02',   '2015-08-25',   null,   'лид',  'Разработка СЭД',   'Руководитель аналитики',   'true', 100),
-('fedotova',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Амина',    'Федотова', 'Никитична',    '+7 (000) 123 45 05',   'fedotova.f@lead-01-06.ru', 'local',    '1995-06-02',   '2015-08-25',   null,   'лид',  'Обучение стажеров',    'Аналитик', 'false',    25),
-('popov',   '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Иван', 'Попов',    'Ильич',    '+7 (000) 123 45 06',   'popov.i@user-05.ru',   'local',    '1995-07-25',   '2020-03-11',   null,   '', 'Разработка СЭД',   'Девопс',   'false',    25),
-('popov',   '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Иван', 'Попов',    'Ильич',    '+7 (000) 123 45 06',   'popov.i@user-05.ru',   'local',    '1995-07-25',   '2020-03-11',   null,   '', 'Модернизация АИС', 'Девопс',   'false',    75),
-('popov',   '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Иван', 'Попов',    'Ильич',    '+7 (000) 123 45 06',   'popov.i@user-05.ru',   'local',    '1995-07-25',   '2020-03-11',   null,   '', 'Офисные нужды',    'Девопс',   'false',    10),
-('gorohova',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'София',    'Горохова', 'Марковна', '+7 (000) 123 45 07',   'gorohova.s@admin-05.ru',   'local',    '1985-02-18',   '2015-11-06',   null,   'админ',    'Офисные нужды',    'Девопс',   'true', 10),
-('matveeva',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Анна', 'Матвеева', 'Данииловна',   '+7 (000) 123 45 08',   'matveeva.a@assist-03.ru',  'local',    '1993-04-12',   '2016-12-30',   null,   'технический ассистент',    'Разработка СЭД',   'Разработчик',  'false',    100),
-('golikov', '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Максим',   'Голиков',  'Максимович',   '+7 (000) 123 45 09',   'golikov.m@lead-02-07.ru',  'local',    '1980-01-25',   '2015-08-13',   null,   'лид',  'Разработка СЭД',   'Руководитель дизайна', 'true', 50),
-('golikov', '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Максим',   'Голиков',  'Максимович',   '+7 (000) 123 45 09',   'golikov.m@lead-02-07.ru',  'local',    '1980-01-25',   '2015-08-13',   null,   'лид',  'Разработка сайта', 'Дизайнер', 'true', 75),
-('baranov', '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Михаил',   'Баранов',  'Игоревич', '+7 (000) 123 45 10',   'baranov.m@user-01.ru', 'local',    '1983-06-07',   '2016-04-15',   null,   '', 'Разработка СЭД',   'Аналитик', 'false',    10),
-('baranov', '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Михаил',   'Баранов',  'Игоревич', '+7 (000) 123 45 10',   'baranov.m@user-01.ru', 'local',    '1983-06-07',   '2016-04-15',   null,   '', 'Модернизация АИС', 'Аналитик', 'false',    100),
-('sokolova',    '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Варвара',  'Соколова', 'Платоновна',   '+7 (000) 123 45 11',   'sokolova.v@user-01.ru',    'local',    '1993-04-19',   '2019-07-12',   null,   '', 'Модернизация АИС', 'Аналитик', 'false',    50),
-('zotov',   '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Илья', 'Зотов',    'Миронович',    '+7 (000) 123 45 12',   'zotov.i@user-05.ru',   'local',    '1998-01-07',   '2021-11-01',   null,   '', 'Модернизация АИС', 'Девопс',   'false',    10),
-('zolotareva',  '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Марьяна',  'Золотарева',   'Тимофеевна',   null,   'zolotareva.m@user-01.ru',  'local',    '1982-03-29',   '2016-05-25',   '2017-07-18',   '', 'Разработка сайта', 'Аналитик', 'false',    50),
-('kudryashov',  '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Лука', 'Кудряшов', 'Степанович',   null,   'kudryashov.l@lead-04.ru',  'local',    '1988-12-14',   '2017-02-24',   null,   'лид',  'Разработка СЭД',   'Тестировщик',  'false',    100),
-('kudryashov',  '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Лука', 'Кудряшов', 'Степанович',   null,   'kudryashov.l@lead-04.ru',  'local',    '1988-12-14',   '2017-02-24',   null,   'лид',  'Разработка сайта', 'Тестировщик',  'false',    100),
-('denisov', '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Арсений',  'Денисов',  'Львович',  null,   'denisov.a@assist-05-10.ru',    'local',    '1989-05-16',   '2016-09-05',   null,   '', 'Разработка СЭД',   'Руководитель автоматизации',   'false',    75),
-('denisov', '$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha', 'Арсений',  'Денисов',  'Львович',  null,   'denisov.a@assist-05-10.ru',    'local',    '1989-05-16',   '2016-09-05',   null,   '', 'Обучение стажеров',    'Девопс',   'false',    25)
+('user',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Виктория',	'Голубева',	'Владимировна',	'+7 (000) 123 45 01',	'golubeva.v@user-02.ru',	'local',	'1990-11-22',	'2018-02-04',	null,	'',	'Младший специалист',	'WORK',	'MARRIED',	'FULL_TIME',	'TECHNICAL',	'8',	'17',	'Отдел дизайна',	'Разработка СЭД',	'Дизайнер',	'false',	25),
+('user',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Виктория',	'Голубева',	'Владимировна',	'+7 (000) 123 45 01',	'golubeva.v@user-02.ru',	'local',	'1990-11-22',	'2018-02-04',	null,	'',	'Младший специалист',	'WORK',	'MARRIED',	'FULL_TIME',	'TECHNICAL',	'8',	'17',	'Отдел дизайна',	'Модернизация АИС',	'Дизайнер',	'false',	50),
+('user',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Виктория',	'Голубева',	'Владимировна',	'+7 (000) 123 45 01',	'golubeva.v@user-02.ru',	'local',	'1990-11-22',	'2018-02-04',	null,	'',	'Младший специалист',	'WORK',	'MARRIED',	'FULL_TIME',	'TECHNICAL',	'8',	'17',	'Отдел дизайна',	'Офисные нужды',	'Дизайнер',	'false',	10),
+('user',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Виктория',	'Голубева',	'Владимировна',	'+7 (000) 123 45 01',	'golubeva.v@user-02.ru',	'local',	'1990-11-22',	'2018-02-04',	null,	'',	'Младший специалист',	'WORK',	'MARRIED',	'FULL_TIME',	'TECHNICAL',	'8',	'17',	'Отдел дизайна',	'Разработка сайта',	'Дизайнер',	'false',	25),
+('admin',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Александр',	'Морозов',	'Степанович',	'+7 (000) 123 45 02',	'morozov.a@admin-03-08.ru',	'local',	'1980-02-12',	'2016-02-17',	null,	'админ',	'Исполнительный директор',	'WORK',	'MARRIED',	'DISTANCE',	'TECHNICAL',	'10',	'19',	'Отдел разработки',	'Модернизация АИС',	'Разработчик',	'false',	100),
+('admin',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Александр',	'Морозов',	'Степанович',	'+7 (000) 123 45 02',	'morozov.a@admin-03-08.ru',	'local',	'1980-02-12',	'2016-02-17',	null,	'админ',	'Исполнительный директор',	'WORK',	'MARRIED',	'DISTANCE',	'TECHNICAL',	'10',	'19',	'Отдел разработки',	'Обучение стажеров',	'Руководитель разработки',	'true',	100),
+('lead',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Елена',	'Чижова',	'Фёдоровна',	'+7 (000) 123 45 03',	'chizhova.e@lead-04-09.ru',	'local',	'1986-05-16',	'2016-12-15',	null,	'лид',	'Ведущий специалист',	'WORK',	'MARRIED',	'FULL_TIME',	'TECHNICAL',	'8',	'17',	'Отдел тестирования',	'Модернизация АИС',	'Руководитель тестирования',	'true',	100),
+('lead',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Елена',	'Чижова',	'Фёдоровна',	'+7 (000) 123 45 03',	'chizhova.e@lead-04-09.ru',	'local',	'1986-05-16',	'2016-12-15',	null,	'лид',	'Ведущий специалист',	'WORK',	'MARRIED',	'FULL_TIME',	'TECHNICAL',	'8',	'17',	'Отдел тестирования',	'Обучение стажеров',	'Тестировщик',	'false',	75),
+('assist',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Максим',	'Королёв',	'Сергеевич',	'+7 (000) 123 45 04',	'korolev.m@assist-03.ru',	'local',	'1996-09-25',	'2016-07-25',	null,	'технический ассистент',	'Специалист',	'WORK',	'MARRIED',	'DISTANCE',	'TECHNICAL',	'8',	'17',	'Отдел разработки',	'Разработка СЭД',	'Разработчик',	'false',	50),
+('assist',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Максим',	'Королёв',	'Сергеевич',	'+7 (000) 123 45 04',	'korolev.m@assist-03.ru',	'local',	'1996-09-25',	'2016-07-25',	null,	'технический ассистент',	'Специалист',	'WORK',	'MARRIED',	'DISTANCE',	'TECHNICAL',	'8',	'17',	'Отдел разработки',	'Модернизация АИС',	'Разработчик',	'false',	75),
+('assist',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Максим',	'Королёв',	'Сергеевич',	'+7 (000) 123 45 04',	'korolev.m@assist-03.ru',	'local',	'1996-09-25',	'2016-07-25',	null,	'технический ассистент',	'Специалист',	'WORK',	'MARRIED',	'DISTANCE',	'TECHNICAL',	'8',	'17',	'Отдел разработки',	'Разработка сайта',	'Разработчик',	'false',	100),
+('fedotova',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Амина',	'Федотова',	'Никитична',	'+7 (000) 123 45 05',	'fedotova.f@lead-01-06.ru',	'local',	'1995-06-02',	'2015-08-25',	null,	'лид',	'Администратор проектов',	'WORK',	'MARRIED',	'FULL_TIME',	'TECHNICAL',	'8',	'17',	'Отдел аналитики',	'Разработка СЭД',	'Руководитель аналитики',	'true',	100),
+('fedotova',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Амина',	'Федотова',	'Никитична',	'+7 (000) 123 45 05',	'fedotova.f@lead-01-06.ru',	'local',	'1995-06-02',	'2015-08-25',	null,	'лид',	'Администратор проектов',	'WORK',	'MARRIED',	'FULL_TIME',	'TECHNICAL',	'8',	'17',	'Отдел аналитики',	'Обучение стажеров',	'Аналитик',	'false',	25),
+('popov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Иван',	'Попов',	'Ильич',	'+7 (000) 123 45 06',	'popov.i@user-05.ru',	'local',	'1995-07-25',	'2020-03-11',	null,	'',	'Старший специалист',	'WORK',	'MARRIED',	'DISTANCE',	'TECHNICAL',	'8',	'17',	'Отдел инфраструктуры',	'Разработка СЭД',	'Девопс',	'false',	25),
+('popov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Иван',	'Попов',	'Ильич',	'+7 (000) 123 45 06',	'popov.i@user-05.ru',	'local',	'1995-07-25',	'2020-03-11',	null,	'',	'Старший специалист',	'WORK',	'MARRIED',	'DISTANCE',	'TECHNICAL',	'8',	'17',	'Отдел инфраструктуры',	'Модернизация АИС',	'Девопс',	'false',	75),
+('popov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Иван',	'Попов',	'Ильич',	'+7 (000) 123 45 06',	'popov.i@user-05.ru',	'local',	'1995-07-25',	'2020-03-11',	null,	'',	'Старший специалист',	'WORK',	'MARRIED',	'DISTANCE',	'TECHNICAL',	'8',	'17',	'Отдел инфраструктуры',	'Офисные нужды',	'Девопс',	'false',	10),
+('gorohova',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'София',	'Горохова',	'Марковна',	'+7 (000) 123 45 07',	'gorohova.s@admin-05.ru',	'local',	'1985-02-18',	'2015-11-06',	null,	'админ',	'Директор по персоналу',	'WORK',	'MARRIED',	'FULL_TIME',	'TECHNICAL',	'10',	'19',	'Отдел инфраструктуры',	'Офисные нужды',	'Девопс',	'true',	10),
+('matveeva',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Анна',	'Матвеева',	'Данииловна',	'+7 (000) 123 45 08',	'matveeva.a@assist-03.ru',	'local',	'1993-04-12',	'2016-12-30',	null,	'технический ассистент',	'Администратор проектов',	'WORK',	'MARRIED',	'DISTANCE',	'TECHNICAL',	'8',	'17',	'Отдел разработки',	'Разработка СЭД',	'Разработчик',	'false',	100),
+('golikov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Максим',	'Голиков',	'Максимович',	'+7 (000) 123 45 09',	'golikov.m@lead-02-07.ru',	'local',	'1980-01-25',	'2015-08-13',	null,	'лид',	'Директор по развитию',	'WORK',	'MARRIED',	'FULL_TIME',	'HUMANITARIAN',	'10',	'19',	'Отдел дизайна',	'Разработка СЭД',	'Руководитель дизайна',	'true',	50),
+('golikov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Максим',	'Голиков',	'Максимович',	'+7 (000) 123 45 09',	'golikov.m@lead-02-07.ru',	'local',	'1980-01-25',	'2015-08-13',	null,	'лид',	'Директор по развитию',	'WORK',	'MARRIED',	'FULL_TIME',	'HUMANITARIAN',	'10',	'19',	'Отдел дизайна',	'Разработка сайта',	'Дизайнер',	'true',	75),
+('baranov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Михаил',	'Баранов',	'Игоревич',	'+7 (000) 123 45 10',	'baranov.m@user-01.ru',	'local',	'1983-06-07',	'2016-04-15',	null,	'',	'Младший специалист',	'WORK',	'MARRIED',	'DISTANCE',	'HUMANITARIAN',	'8',	'17',	'Отдел аналитики',	'Разработка СЭД',	'Аналитик',	'false',	10),
+('baranov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Михаил',	'Баранов',	'Игоревич',	'+7 (000) 123 45 10',	'baranov.m@user-01.ru',	'local',	'1983-06-07',	'2016-04-15',	null,	'',	'Младший специалист',	'WORK',	'MARRIED',	'DISTANCE',	'HUMANITARIAN',	'8',	'17',	'Отдел аналитики',	'Модернизация АИС',	'Аналитик',	'false',	100),
+('sokolova',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Варвара',	'Соколова',	'Платоновна',	'+7 (000) 123 45 11',	'sokolova.v@user-01.ru',	'local',	'1993-04-19',	'2019-07-12',	null,	'',	'Бухгалтер',	'WORK',	'MARRIED',	'FULL_TIME',	'HUMANITARIAN',	'8',	'17',	'Отдел аналитики',	'Модернизация АИС',	'Аналитик',	'false',	50),
+('zotov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Илья',	'Зотов',	'Миронович',	'+7 (000) 123 45 12',	'zotov.i@user-05.ru',	'local',	'1998-01-07',	'2021-11-01',	null,	'',	'Младший специалист',	'WORK',	'MARRIED',	'DISTANCE',	'HUMANITARIAN',	'8',	'17',	'Отдел инфраструктуры',	'Модернизация АИС',	'Девопс',	'false',	10),
+('zolotareva',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Марьяна',	'Золотарева',	'Тимофеевна',	null,	'zolotareva.m@user-01.ru',	'local',	'1982-03-29',	'2016-05-25',	'2017-07-18',	'',	'Специалист',	'WORK',	'MARRIED',	'FULL_TIME',	'HUMANITARIAN',	'8',	'17',	'Отдел аналитики',	'Разработка сайта',	'Аналитик',	'false',	50),
+('kudryashov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Лука',	'Кудряшов',	'Степанович',	null,	'kudryashov.l@lead-04.ru',	'local',	'1988-12-14',	'2017-02-24',	null,	'лид',	'Ведущий специалист',	'WORK',	'MARRIED',	'DISTANCE',	'HUMANITARIAN',	'8',	'17',	'Отдел тестирования',	'Разработка СЭД',	'Тестировщик',	'false',	100),
+('kudryashov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Лука',	'Кудряшов',	'Степанович',	null,	'kudryashov.l@lead-04.ru',	'local',	'1988-12-14',	'2017-02-24',	null,	'лид',	'Ведущий специалист',	'WORK',	'MARRIED',	'DISTANCE',	'HUMANITARIAN',	'8',	'17',	'Отдел тестирования',	'Разработка сайта',	'Тестировщик',	'false',	100),
+('denisov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Арсений',	'Денисов',	'Львович',	null,	'denisov.a@assist-05-10.ru',	'local',	'1989-05-16',	'2016-09-05',	null,	'',	'Главный специалист',	'WORK',	'MARRIED',	'FULL_TIME',	'HUMANITARIAN',	'8',	'17',	'Отдел инфраструктуры',	'Разработка СЭД',	'Девопс',	'false',	75),
+('denisov',	'$2a$10$aKCtVCqalCxT.j1gD/MG0OyTi8lqeqnKSNm2G8zXH5wuwoxWUwfha',	'Арсений',	'Денисов',	'Львович',	null,	'denisov.a@assist-05-10.ru',	'local',	'1989-05-16',	'2016-09-05',	null,	'',	'Главный специалист',	'WORK',	'MARRIED',	'FULL_TIME',	'HUMANITARIAN',	'8',	'17',	'Отдел инфраструктуры',	'Обучение стажеров',	'Руководитель автоматизации',	'false',	25)
 RETURNING *;
 
 --заполнение таблицу "Проекты"
@@ -241,6 +250,69 @@ UPDATE busy_percentages
 -- если нужно, то строки с 0м процентом удаляем
 --DELETE FROM busy_percentages 
 --    WHERE percentage = 0;
+
+-- данные Карты Компетенций
+--заполняем таблицу постов kk_posts 
+ALTER SEQUENCE kk_posts_id_seq RESTART WITH 1; -- сброс id в 1
+INSERT INTO kk_posts  (name, created_at)
+    SELECT DISTINCT kk_post, now() FROM user_data
+RETURNING *;
+
+--заполняем таблицу департаментов kk_departments 
+ALTER SEQUENCE kk_departments_id_seq RESTART WITH 1; -- сброс id в 1
+INSERT INTO kk_departments  (name, created_at)
+    SELECT DISTINCT kk_department, now() FROM user_data
+RETURNING *;
+
+--заполняем таблицу рабочих мест kk_workplaces 
+ALTER SEQUENCE kk_workplaces_id_seq RESTART WITH 1; -- сброс id в 1
+INSERT INTO kk_workplaces (post_id, department_id, created_at)
+    SELECT DISTINCT kk_posts.id, kk_departments.id, now() FROM user_data
+    JOIN kk_posts ON user_data.kk_post = kk_posts."name"
+    JOIN kk_departments ON user_data.kk_department = kk_departments."name"  
+RETURNING *;
+
+--заполняем таблицу профилей kk_profiles
+ALTER SEQUENCE kk_profiles_id_seq RESTART WITH 1; -- сброс id в 1
+WITH 
+    detailed_wrk_places AS (
+        SELECT kk_workplaces.id, kk_posts."name" AS post_name, kk_departments."name" AS department_name FROM kk_workplaces
+        JOIN kk_posts ON kk_workplaces.post_id = kk_posts.id
+        JOIN kk_departments ON kk_workplaces.department_id = kk_departments.id  
+    ),
+    user_data_with_workplaces AS (
+        SELECT DISTINCT user_data.kk_status, now(), user_data.kk_marital_status, users.id AS user_id, detailed_wrk_places.id AS workplace_id, now() FROM user_data
+        JOIN detailed_wrk_places ON (user_data.kk_post = detailed_wrk_places.post_name) AND (user_data.kk_department = detailed_wrk_places.department_name)
+        JOIN users ON user_data.username = users.username
+    )
+INSERT INTO kk_profiles (status, takingoffice_date, marital_status, user_id, workplace_id, created_at)
+    SELECT DISTINCT user_data_with_workplaces.kk_status, now(), user_data_with_workplaces.kk_marital_status, user_data_with_workplaces.user_id, user_data_with_workplaces.workplace_id, now() FROM user_data_with_workplaces
+RETURNING *;
+
+--заполняем таблицу образования kk_education 
+ALTER SEQUENCE kk_education_id_seq RESTART WITH 1; -- сброс id в 1
+WITH 
+    user_data_with_profiles AS (
+        SELECT DISTINCT users.id AS user_id, user_data.kk_edu_type, user_data.kk_edu_direction, kk_profiles.id AS kk_profile_id FROM user_data
+        JOIN users ON user_data.username = users.username
+        JOIN kk_profiles ON users.id = kk_profiles.user_id
+    )
+INSERT INTO kk_education ("type",direction, profile_id, created_at)
+    SELECT DISTINCT user_data_with_profiles.kk_edu_type, user_data_with_profiles.kk_edu_direction, user_data_with_profiles.kk_profile_id, now() FROM user_data_with_profiles
+RETURNING *;
+
+--заполняем таблицу администраторов kk_admin 
+ALTER SEQUENCE kk_admin_id_seq RESTART WITH 1; -- сброс id в 1
+WITH 
+    admin_data_with_profile AS (
+        SELECT DISTINCT  kk_profiles.id AS admin_kk_profile_id, now () FROM user_data
+        JOIN users ON user_data.username = users.username
+        JOIN kk_profiles ON users.id = kk_profiles.user_id
+        WHERE user_data.system_role = 'админ'
+    )
+INSERT INTO kk_admin (profile_id, created_at)
+    SELECT * FROM admin_data_with_profile
+RETURNING *;
 
 
 --удаление временных таблиц и функций
