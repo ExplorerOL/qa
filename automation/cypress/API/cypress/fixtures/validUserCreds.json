@@ -1,0 +1,22 @@
+{
+  "admin": {
+    "username": "admin",
+    "password": "password",
+    "sysRole": "admin"
+  },
+  "lead": {
+    "username": "lead",
+    "password": "password",
+    "sysRole": "lead"
+  },
+  "tech_assist": {
+    "username": "assist",
+    "password": "password",
+    "sysRole": "tech_assist"
+  },
+  "user": {
+    "username": "user",
+    "password": "password",
+    "sysRole": "user"
+  }
+}

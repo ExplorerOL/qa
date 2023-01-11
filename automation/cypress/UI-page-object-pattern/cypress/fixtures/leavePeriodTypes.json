@@ -1,0 +1,6 @@
+{
+    "sickPeriodType": "SIC",
+    "vacationPeriodType": "VAC",
+    "administrativePeriodType": "ADM",
+    "maternityPeriodType": "MAT"
+}
